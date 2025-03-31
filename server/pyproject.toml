@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "server"
+version = "0.1.0"
+description = ""
+authors = ["Nathnael Dereje <nathandere1357@gmail.com>"]
+package-mode = false
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pytest = "^8.3.5"
+pymongo = {version = "4.7", extras = ["srv"]}
+beanie = "^1.29.0"
+python-decouple = "^3.8"
+fastapi = {extras = ["standard"], version = "^0.115.12"}
+dependency-injector = "^4.46.0"
+
+
+[tool.poe.tasks]
+test = "pytest"
+dev = "uvicorn src.main:app --reload"
+start = "uvicorn src.main:app"
+
+[tool.poetry.group.dev.dependencies]
+poethepoet = "^0.33.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
