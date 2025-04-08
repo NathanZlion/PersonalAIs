@@ -8,6 +8,7 @@ from src.api.v1.endpoints.session import router as session_router
 routers = APIRouter()
 router_list = [auth_router, user_router, session_router]
 
+
 for router in router_list:
     router.tags.append("v1")
     routers.include_router(router)

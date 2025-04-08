@@ -14,12 +14,14 @@ beanie = "^1.29.0"
 python-decouple = "^3.8"
 fastapi = {extras = ["standard"], version = "^0.115.12"}
 dependency-injector = "^4.46.0"
+requests = "^2.32.3"
+pyjwt = "^2.10.1"
 
 
 [tool.poe.tasks]
 test = "pytest"
-dev = "uvicorn src.main:app --reload"
-start = "uvicorn src.main:app"
+dev = "uvicorn src.main:app --reload --log-level info"
+start = "uvicorn src.main:app --log-level info"
 
 [tool.poetry.group.dev.dependencies]
 poethepoet = "^0.33.1"

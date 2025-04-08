@@ -20,10 +20,11 @@ poetry shell
 ```
 
 ## Install the dependencies:
-
 ```bash
 poetry install
 ```
+
+This will install the dependencies with their respective versions as specified in the `poetry.lock` file.
 
 ## Running in development mode:
 
