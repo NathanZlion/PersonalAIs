@@ -1,10 +1,10 @@
 """User models."""
 
-from datetime import datetime
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
+from src.dtos.user_dto import SpotifyImage
 from src.models.base_models import CreatedUpdatedAt
 
-from beanie import Document, Indexed  # type: ignore
+from beanie import Document, Indexed
 from pydantic import EmailStr
 
 
@@ -12,11 +12,13 @@ class User(Document, CreatedUpdatedAt):
     """User DB representation."""
 
     email: Annotated[EmailStr, Indexed(unique=True)]
-    role: str = "user"
-    email_confirmed_at: Optional[datetime] = None
+    spotify_id: Annotated[str, Indexed(unique=True)]
+    display_name: Optional[str] = None
+    country: str
+    images: List[SpotifyImage]  # could be empty
 
     def __repr__(self) -> str:
-        return f"<User {self.id}>"
+        return f"<User: {self.id}>"
 
     def __str__(self) -> str:
         return self.id.__str__()
