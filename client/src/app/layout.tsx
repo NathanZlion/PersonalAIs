@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import LocalFont from "next/font/local";
+import { Toaster } from "@/components/ui/sonner"
+import { ThemeProvider } from "@/components/ui/theme-provider";
+
 
 import "./globals.css";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = LocalFont({
   src: "/fonts/Geist/Geist-VariableFont_wght.ttf",
@@ -12,6 +16,7 @@ const geistMono = LocalFont({
   src: "/fonts/Geist_Mono/GeistMono-VariableFont_wght.ttf",
   variable: "--font-geist-mono"
 });
+
 
 export const metadata: Metadata = {
   title: "PersonalAIs",
@@ -24,10 +29,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning suppressContentEditableWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TooltipProvider>
+            <Toaster />
+            {children}
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
-    </html>
+    </html >
   );
 }
