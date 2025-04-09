@@ -8,6 +8,7 @@ from src.core.config import CONFIG
 from src.core.exceptions import MalformedTokenError, TokenNotFoundError
 from src.utils.helper_functions import get_current_time
 from fastapi.encoders import jsonable_encoder
+from src.utils.logger import logg
 
 
 NEVER_EXPIRE = None
@@ -31,20 +32,21 @@ class JWT_UTILS:
         payload_to_encode = payload.copy()
         exp = get_current_time() + expires_delta
         payload_to_encode.update({"exp": exp.timestamp()})
-
-        print("Payload to encode:", jsonable_encoder(payload_to_encode))
+        # to ensure all values are JSON serializable
+        serializable_payload = jsonable_encoder(payload_to_encode)
+        logg.debug(f"Payload to encode: {serializable_payload}")
 
         encoded_jwt = jwt.encode(
-            payload=jsonable_encoder(payload_to_encode),
+            payload=serializable_payload,
             key=SECRET_KEY,
             algorithm=ALGORITHM,
             headers={"alg": ALGORITHM, "typ": "JWT"},
         )
 
+        logg.debug(f"Encoded JWT: {encoded_jwt}")
         return Token(
             token=encoded_jwt,
-            exp=datetime.now(),
-            # exp=exp,
+            exp=exp,
         )
 
     @staticmethod
@@ -57,13 +59,20 @@ class JWT_UTILS:
         try:
             if not token:
                 raise TokenNotFoundError(detail="Found empty token")
-            payload = jwt.decode(jwt=token, key=SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(
+                jwt=token,
+                key=SECRET_KEY,
+                algorithms=[ALGORITHM],
+                json_encoder=jsonable_encoder,
+            )
+
+            logg.debug(f"Decoded payload: {payload}")
             return payload
         except InvalidTokenError as e:
-            print(f"InvalidTokenError: {e}")
+            logg.exception(f"InvalidTokenError: {e}")
             raise MalformedTokenError(detail="Token is malformed")
         except Exception as e:
-            print(f"Error decoding token: {e}")
+            logg.exception(f"Exception decoding token: {e}")
             raise MalformedTokenError(detail="Token is malformed")
 
     @staticmethod
@@ -72,7 +81,10 @@ class JWT_UTILS:
         length: int = 32,
     ) -> Token:
         exp = get_current_time() + expires_delta
+        # Generate a random token using os.urandom and encode it in base64
+        random_token = base64.urlsafe_b64encode(os.urandom(length)).decode("utf-8")
+        logg.debug(f"Generated random token: {random_token}")
         return Token(
-            token=base64.urlsafe_b64encode(os.urandom(length)).decode("utf-8"),
+            token=random_token,
             exp=exp,
         )

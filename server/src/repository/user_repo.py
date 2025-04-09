@@ -9,9 +9,8 @@ class UserRepo(BaseRepo):
         pass
 
     async def create(self, user: UserCreateInputDto) -> UserCreateResultDto:
-        new_user = await User(**user.model_dump()).insert()
-        print("User created successfully:", new_user)
 
+        new_user = await User(**user.model_dump()).insert()
         return UserCreateResultDto(**new_user.model_dump())
 
     async def get(self, user_id: PydanticObjectId) -> UserGetResultDto:

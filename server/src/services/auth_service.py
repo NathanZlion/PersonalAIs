@@ -24,24 +24,17 @@ class AuthService:
         """Register a new user and create a new session for them."""
 
         try:
-            print("Checking if user already exists...")
             _user = await self.__user_repo.get_by_spotify_id(user_create_dto.spotify_id)
 
-            print("user already exists: ", _user)
-
             if _user is None:
-                print("User does not exist, creating new user...")
                 # Create a new user
                 _user = await self.__user_repo.create(user_create_dto)
 
             # new_user = await self.__user_repo.create(user_create_dto)
 
             refresh_token = JWT_UTILS.generate_random_token()
-            print("Refresh token: ", refresh_token)
 
-            print("Creating new session...")
             # create a new session
-
             create_session_dto = SessionCreateInputDto(
                 user_id=_user.id,  # type: ignore
                 refresh_token=refresh_token.token,
@@ -50,13 +43,9 @@ class AuthService:
                 expires_at=refresh_token.expiration_date,
             )
 
-            print("Session create dto: ", create_session_dto)
-
             new_session = await self.__session_service.create_new_session(
                 create_session_dto
             )
-
-            print("New session created: ", new_session)
 
             """ Generate access and refresh token for user.
             Access token will have the following signed in it:
@@ -66,12 +55,10 @@ class AuthService:
                 is added in the generate_token method based on the expires_delta given
             """
 
-            print("Dumping user data")
             user_data = _user.model_dump(
                 # exclude={"created_at", "updated_at"}
             )  # to avoid the datetime serialization error
 
-            print(user_data, "Generating access token...")
             access_token = JWT_UTILS.generate_token(
                 payload={
                     "user_data": user_data,
@@ -80,15 +67,13 @@ class AuthService:
                 expires_delta=CONFIG.ACCESS_TOKEN_LIFETIME,
             )
 
-            print("Access token: ", access_token)
-
             return AuthRegisterSuccessResponse(
+                id=str(_user.id),
                 access_token=access_token.token,
                 refresh_token=refresh_token.token,
                 token_type="Bearer",
-                expires_at=access_token.expiration_date,
+                expires_at=access_token.expiration_date.timestamp(),
             )
 
         except Exception as e:
-            print("Exception during user registration:", e)
             raise e

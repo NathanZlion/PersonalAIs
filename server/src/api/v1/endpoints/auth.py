@@ -1,16 +1,21 @@
-from turtle import st
-from typing import Dict, Optional
+from typing import Dict
 import urllib.parse
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
+from src.utils.logger import logg
 from pydantic_core import ValidationError
 import urllib
 from requests import get, post
 
 from src.core.container import Container
 from src.core.exceptions import TokenExpiredError
-from src.dtos.auth_dto import AuthCallbackInputDto, AuthCallbackResponse
+from src.dtos.auth_dto import (
+    AuthCallbackInputDto,
+    AuthCallbackResponse,
+    SpotifyCallbackResponse,
+    AuthRegisterSuccessResponse,
+)
 from src.dtos.spotify_credentials_dto import SpotifyCredentialsCreateInputDto
 from src.dtos.user_dto import (
     UserCreateInputDto,
@@ -56,12 +61,10 @@ async def callback(
     spotify_credentials_service: SpotifyCredentialsService = Depends(
         Provide[Container.spotify_credentials_service]
     ),
-) -> JSONResponse:
+) -> AuthCallbackResponse:
     """Callback with the code for the authorization code flow."""
-    print(
-        f"Callback input: {callback_input}, auth_service: {auth_service}, spotify_credentials_service: {spotify_credentials_service}"
-    )
     try:
+        logg.info(f"Auth Callback input : {callback_input.model_dump()}")
         if callback_input.error:
             raise HTTPException(status_code=400, detail=callback_input.error)
 
@@ -80,34 +83,26 @@ async def callback(
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             json=True,
         )
-        print(
-            f"Token response: {token_response}, status_code: {token_response.status_code}, json: {token_response.json()}"
-        )
 
         if token_response.status_code != 200:
             raise TokenExpiredError()
 
-        auth_callback_response = AuthCallbackResponse.model_validate(
+        auth_callback_response = SpotifyCallbackResponse.model_validate(
             token_response.json()
         )
 
-        print(f"auth_callback_response: {auth_callback_response}")
+        logg.debug(f"Spotify Authentication Reponse: {auth_callback_response} ")
+
         spotify_user_info_response = get(
             f"{CONFIG.SPOTIFY_API_BASE_URL}/me",
             headers={"Authorization": f"Bearer {auth_callback_response.access_token}"},
-        )
-
-        print(
-            f"Spotify user info response: {spotify_user_info_response}, status_code: {spotify_user_info_response.status_code}, json: {spotify_user_info_response.json()}"
         )
 
         spotify_user_info = UserSpotifyProfileDto.model_validate(
             spotify_user_info_response.json()
         )
 
-        print(
-            "validated spotify user info, trying to store credentials it in the db..."
-        )
+        logg.info(f"Spotify User Response: {spotify_user_info}")
 
         # store the credentials in the database
         await spotify_credentials_service.store_credentials(
@@ -117,10 +112,8 @@ async def callback(
             )
         )
 
-        print("stored credentials in the db, now trying to register the user...")
-
         # register the user in the database
-        await auth_service.register(
+        registration_success_respone = await auth_service.register(
             user_create_dto=UserCreateInputDto(
                 email=spotify_user_info.email,
                 display_name=spotify_user_info.display_name,
@@ -133,33 +126,26 @@ async def callback(
             )
         )
 
-        print(
-            f"Auth callback response: {auth_callback_response}, spotify_user_info: {spotify_user_info}"
+        return AuthCallbackResponse(
+            access_token=auth_callback_response.access_token,
+            refresh_token=auth_callback_response.refresh_token,
+            expires_at=auth_callback_response.expires_at,  # type: ignore
+            token_type=auth_callback_response.token_type,
+            user=UserCreateResultDto(
+                id=registration_success_respone.id,
+                email=spotify_user_info.email,
+                display_name=spotify_user_info.display_name,
+                country=spotify_user_info.country,
+                spotify_id=spotify_user_info.id,
+                images=spotify_user_info.images,
+            ),
         )
-
-        return JSONResponse(
-            status_code=200,
-            content={
-                "message": "User registered successfully",
-                "user": {
-                    "email": spotify_user_info.email,
-                    "display_name": spotify_user_info.display_name,
-                    "country": spotify_user_info.country,
-                    "spotify_id": spotify_user_info.id,
-                    "images": spotify_user_info.images,
-                },
-                "access_token": auth_callback_response.access_token,
-                "refresh_token": auth_callback_response.refresh_token,
-                "expires_at": str(auth_callback_response.expires_at),
-            },
-        )
-
     except ValidationError as e:
-        print(f"Validation Error: {e}")
+        logg.exception(f"Validation Error: {e}")
         raise HTTPException(status_code=400, detail="Validation error")
 
     except Exception as e:
-        print(f"Exception : {e.with_traceback}")
+        logg.exception(f"Exception: {e}")
         raise HTTPException(status_code=500, detail="Unknown error")
 
 

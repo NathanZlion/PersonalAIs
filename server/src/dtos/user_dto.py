@@ -38,7 +38,7 @@ class UserGetResultDto(UserBase, CreatedUpdatedAt):
 
 
 class UserCreateResultDto(UserCreateInputDto, CreatedUpdatedAt):
-    id: str
+    id: str    # the user id in our database
 
 class UserSpotifyProfileDto(BaseModel):
     """

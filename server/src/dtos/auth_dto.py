@@ -22,7 +22,63 @@ class AuthCallbackInputDto(AuthBase):
     error: Optional[str] = None
 
 
-class AuthCallbackResponse(AuthBase):
+class AuthRegisterSuccessResponse(AuthBase):
+    """
+    Auth response when the user is successfully registered.
+    This is going to be returned to the user.
+
+    """
+
+    id: str
+    access_token: str
+    refresh_token: str
+    token_type: str
+    expires_at: float
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class AuthCallbackResponse(AuthRegisterSuccessResponse, AuthBase):
+    user: UserCreateResultDto
+
+
+class AuthAccessTokenSignedData(AuthBase):
+    """
+    The Data that is signed into the access token.
+        - user_data
+        - session_id
+        - expiration_time
+    """
+
+    user_data: UserCreateResultDto
+    session_id: PydanticObjectId
+    expiration_time: datetime
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class SpotifyGetMeResponse(AuthBase):
+    """
+    Response from spotify for /me endpoint.
+    """
+
+    id: str
+    display_name: str
+    email: str
+    country: Optional[str] = None
+    product: Optional[str] = None
+    images: Optional[list] = None
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+
+class SpotifyCallbackResponse(AuthBase):
     """
     Attributes
     -----------
@@ -53,54 +109,3 @@ class AuthCallbackResponse(AuthBase):
             self.expires_at = (
                 get_current_time() + timedelta(seconds=self.expires_in)
             ).timestamp()
-
-
-class AuthSpotifyGetMeResponse(AuthBase):
-    """
-    Response from spotify for /me endpoint.
-    """
-
-    id: str
-    display_name: str
-    email: str
-    country: Optional[str] = None
-    product: Optional[str] = None
-    images: Optional[list] = None
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
-
-class AuthRegisterSuccessResponse(AuthBase):
-    """
-    Auth response when the user is successfully registered.
-    This is going to be returned to the user.
-
-    """
-
-    access_token: str
-    refresh_token: str
-    token_type: str
-    expires_at: datetime
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )
-
-
-class AuthAccessTokenSignedData(AuthBase):
-    """
-    The Data that is signed into the access token.
-        - user_data
-        - session_id
-        - expiration_time
-    """
-
-    user_data: UserCreateResultDto
-    session_id: PydanticObjectId
-    expiration_time: datetime
-
-    model_config = ConfigDict(
-        from_attributes=True,
-    )

@@ -1,4 +1,5 @@
 from fastapi import Response, Request, HTTPException, status
+from src.utils.logger import logg
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 from functools import wraps
@@ -15,11 +16,6 @@ from src.utils.jwt_utils import JWT_UTILS
 
 def ensure_user_authenticated(request: Request) -> None:
     """Centralized function to check if the request is authenticated."""
-
-    # print every thing in the request
-    print(request.headers)
-    print(request.state._state)
-    print(request)
 
     if not getattr(request.state, "auth", None):
         raise HTTPException(
@@ -46,18 +42,24 @@ class AuthUserExtractFromTokenMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
             authorization_header = request.headers.get("Authorization")
-            print("Authorization header:", authorization_header)
+            logg.debug(
+                f"Authorization header: {authorization_header}, request: {request.url}"
+            )
             if authorization_header:
                 parts = authorization_header.split(" ")
-                print("Parts:", parts)
+
                 if len(parts) != 2:
                     raise MalformedTokenError()
+
                 token = parts[1]
-                print("Token:", token)
+
+                logg.debug(f"Token: {token}")
+
                 decoded_token = JWT_UTILS.decode_jwt(token)
-                print("decoded token:", decoded_token)
+
+                logg.debug(f"Decoded Info: {decoded_token}")
                 authdata = AuthAccessTokenSignedData.model_validate(decoded_token)
-                print("authdata:", authdata)
+                logg.debug(f"Auth data: {authdata}")
 
                 # save the auth data in the request state, for access in later processes
                 request.state.auth = authdata

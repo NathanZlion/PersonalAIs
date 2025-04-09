@@ -22,31 +22,26 @@ class SpotifyCredentialsService:
     ) -> SpotifyCredentialsOutputDto:
         """Store Spotify credentials."""
 
-        print("Storing Spotify credentials...")
         _existing_credentials = await self.__spotify_credentials_repo.get_by_spotify_id(
             spotify_id=create_spotify_credentials_dto.spotify_id
         )
 
         if not overwrite_existing and _existing_credentials:
-            print("Spotify credentials already exist.")
             raise Exception(
                 "Spotify credentials already exist. Set overwrite_existing to True to overwrite."
             )
 
         if _existing_credentials:
-            print("Deleting existing Spotify credentials...")
             # Delete existing credentials if overwrite_existing is True
             await self.__spotify_credentials_repo.delete(
                 spotify_id=_existing_credentials.spotify_id
             )
 
-        print("Creating new Spotify credentials...")
         # Check if the credentials already exist
         new_credentials_store = await self.__spotify_credentials_repo.create(
             credentials=create_spotify_credentials_dto,
         )
 
-        print("New Spotify credentials created successfully.")
         return SpotifyCredentialsOutputDto(
             **new_credentials_store.model_dump(),
         )

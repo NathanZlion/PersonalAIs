@@ -21,18 +21,12 @@ class SessionService:
         create_session_dto: SessionCreateInputDto,
     ) -> SessionCreateResultDto:
         try:
-            print("SessionService: Creating new session...")
             new_session = await self.__session_repo.create(session=create_session_dto)
-
-            print("SessionService: New session created:", new_session)
             assert new_session.id is not None, "Session creation failed"
-
-            print("SessionService: New session ID:", new_session.id)
             return SessionCreateResultDto(
                 **new_session.model_dump(), session_id=new_session.id
             )
         except Exception as e:
-            print("SessionService: Exception during session creation:", e)
             raise e
 
     async def get_session_by_id(
