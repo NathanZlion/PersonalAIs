@@ -14,7 +14,6 @@ from src.dtos.auth_dto import (
     AuthCallbackInputDto,
     AuthCallbackResponse,
     SpotifyCallbackResponse,
-    AuthRegisterSuccessResponse,
 )
 from src.dtos.spotify_credentials_dto import SpotifyCredentialsCreateInputDto
 from src.dtos.user_dto import (
@@ -50,10 +49,9 @@ async def login() -> JSONResponse:
     redirect_url = f"{CONFIG.SPOTIFY_AUTH_URL}?{urllib.parse.urlencode(params)}"
 
     return JSONResponse(status_code=200, content={"redirect_url": redirect_url})
-    # return Response(status_code=200, content={"redirect_url": redirect_url})
 
 
-@router.post("/callback", response_model=UserCreateResultDto)
+@router.post("/callback", response_model=AuthCallbackResponse)
 @inject
 async def callback(
     callback_input: AuthCallbackInputDto,
@@ -63,6 +61,7 @@ async def callback(
     ),
 ) -> AuthCallbackResponse:
     """Callback with the code for the authorization code flow."""
+
     try:
         logg.info(f"Auth Callback input : {callback_input.model_dump()}")
         if callback_input.error:
@@ -113,7 +112,7 @@ async def callback(
         )
 
         # register the user in the database
-        registration_success_respone = await auth_service.register(
+        registration_success_response = await auth_service.register(
             user_create_dto=UserCreateInputDto(
                 email=spotify_user_info.email,
                 display_name=spotify_user_info.display_name,
@@ -127,12 +126,13 @@ async def callback(
         )
 
         return AuthCallbackResponse(
+            id=registration_success_response.id,
             access_token=auth_callback_response.access_token,
             refresh_token=auth_callback_response.refresh_token,
             expires_at=auth_callback_response.expires_at,  # type: ignore
             token_type=auth_callback_response.token_type,
             user=UserCreateResultDto(
-                id=registration_success_respone.id,
+                id=registration_success_response.id,
                 email=spotify_user_info.email,
                 display_name=spotify_user_info.display_name,
                 country=spotify_user_info.country,
