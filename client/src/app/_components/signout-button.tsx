@@ -3,11 +3,12 @@
 import { useAuthStore } from "@/lib/store/auth";
 
 export const SignOutButton = () => {
-    const { logout } = useAuthStore.getState();
+    const { logout } = useAuthStore();
 
     const handleLogout = () => {
+        console.log("Logging out...");
+        logout();
     };
-    logout();
 
     return (
         <div

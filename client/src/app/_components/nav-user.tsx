@@ -31,6 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useTheme } from "next-themes"
 import { IconMoon2, IconSun } from "@tabler/icons-react"
 import { SignOutButton } from "./signout-button"
+import { useAuthStore } from "@/lib/store/auth"
 
 export function NavUser({
   user,
@@ -43,6 +44,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const { resolvedTheme, setTheme } = useTheme()
+  const { logout } = useAuthStore();
 
   return (
     <SidebarMenu>
@@ -96,15 +98,6 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Coffee />
-                Buy Me a Coffee
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-
-            <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
               <DropdownMenuItem>
@@ -123,7 +116,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <LogOut />
               <SignOutButton />
             </DropdownMenuItem>

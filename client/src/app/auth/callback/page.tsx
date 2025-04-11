@@ -15,11 +15,12 @@ export const CallbackPage = () => {
     const searchParams = useSearchParams()
 
     // const  = useAuthStore()
-    const [is_loading, is_authenticated] = useAuthStore(
+    const [is_loading, is_authenticated, login] = useAuthStore(
         useShallow(
             (state) => [
                 state.is_loading,
-                state.is_authenticated
+                state.is_authenticated,
+                state.login
             ])
     )
 
@@ -27,16 +28,18 @@ export const CallbackPage = () => {
     const code = searchParams.get("code")
 
     const [error, _] = useState<string | null>(searchParams.get("error"));
-    const { login } = useAuthStore.getState();
 
     useEffect(() => {
-        if (error || !code) {
+        if (!code) {
+            toast("Error Signing In...", { description: `Missing code`, duration: 5000 });
+            return;
+        }
+        if (error) {
             toast("Error Signing In...", { description: `${error}`, duration: 5000 });
         } else {
             login(code, state);
         }
-
-    }, [error, is_loading]);
+    }, [code, state, error]);
 
     useEffect(() => {
         if (is_authenticated) {

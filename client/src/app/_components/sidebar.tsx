@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import * as React from "react"
 import { NavUser } from "@/app/_components/nav-user"
@@ -12,7 +12,7 @@ import {
 import Logo from "@/components/logo"
 import { NavGroup, NavMenuItem } from "@/app/_components/nav-group"
 
-import { IconHome, IconBook2, IconCube3dSphere, IconBrandGithub, IconBug, IconMail, IconSparkles } from "@tabler/icons-react"
+import { IconHome, IconCube3dSphere, IconBrandGithub, IconBug, IconMail, IconSparkles } from "@tabler/icons-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuthStore } from "@/lib/store/auth"
 import { SignInButton } from "./signin-button"
@@ -22,7 +22,7 @@ import { SignInButton } from "./signin-button"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     // const { isSignedIn, user, isLoaded } = 
-    const { user, is_loading, is_authenticated } = useAuthStore.getState();
+    const { user, is_loading, is_authenticated } = useAuthStore();
 
     const data = {
         user: {
@@ -33,21 +33,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         navMenuItems: [
             {
                 title: "Dashboard",
-                url: "#",
-                icon: <IconHome />,
+                url: "/app",
+                icon: <IconHome />
             },
             {
                 title: "Chat",
-                url: "c",
+                url: "/app/chat",
                 icon: <IconCube3dSphere />,
                 items: [
                     {
                         title: "Introduction",
-                        url: "#"
+                        url: "intro"
                     },
                     {
                         title: "Linkedlist",
-                        url: "#"
+                        url: "linkedin"
                     }
                 ]
             },
@@ -63,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 title: "Report a bug",
                 url: "https://github.com/NathanZlion/PersonalAIs/issues/new",
                 icon: <IconBug />,
-                target: "_blank"
+                target: "_blank",
             },
             {
                 title: "Feature Request",
