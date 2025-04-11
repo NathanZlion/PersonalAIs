@@ -33,13 +33,12 @@ export interface AuthCallbackResponse {
     user: User;
     access_token: string;
     refresh_token: string;
-    // expires_at is a timestamp in milliseconds
-    expires_at: number;
+    expires_at: number;  // expires_at is a timestamp in milliseconds
 }
 
 type AuthActions = {
     set_loading: (is_loading: boolean) => void,
-    set_user: (user: User | null) => void,
+    set_user: (user: AuthState["user"]) => void,
     login: (
         code: string,
         state: string | null,
@@ -58,71 +57,62 @@ const initialAuthState: AuthState = {
     is_authenticated: false,
 }
 
+
 export const useAuthStore = create<AuthState & AuthActions>()(
     persist(
         (set) => ({
             ...initialAuthState,
 
-            // called when the user updates their profile
             set_user: (user) => {
-                set({ is_loading: true })
-                set({ user })
-                set({ is_loading: false })
+                set({ is_loading: true });
+                set({ user });
+                set({ is_loading: false });
             },
 
             set_loading: (is_loading) => {
-                set((state) => ({
-                    ...state,
-                    is_loading: is_loading
-                }))
+                set(() => ({
+                    is_loading,
+                }));
             },
 
             login: async (code, state) => {
                 try {
-                    set((state) => ({
-                        ...state,
-                        is_loading: true
-                    }))
-
-                    const res = await AxiosInstance.post<AuthCallbackResponse>('/auth/callback', { code, state })
+                    set({ is_loading: true });
+                    const res = await AxiosInstance.post<AuthCallbackResponse>('/auth/callback', { code, state });
                     const { user, access_token, refresh_token, expires_at } = res.data;
 
-                    set((state) => ({
-                        ...state,
+                    set({
                         user,
                         access_token,
                         refresh_token,
                         access_token_expires_at: expires_at,
                         is_authenticated: true,
-                    }))
-
+                        is_loading: false,
+                    });
+                } catch (error) {
+                    console.error("Login error:", error);
                 } finally {
-                    set((state) => ({
-                        ...state,
-                        is_loading: false
-                    }))
+                    set({ is_loading: false });
                 }
             },
+
             logout: () => {
-                useAuthStore.persist.clearStorage()
-
-                set((state) => ({
-                    ...state,
-                    initialAuthState
-                }))
-
-                console.log("Logged out")
-
+                // Reset the state to initialAuthState
+                set(() => ({
+                    ...initialAuthState
+                }));
+                console.log("Logged out");
             },
 
-            refresh_access_token: (access_token, access_token_expires_at) => set({
-                access_token,
-                access_token_expires_at,
-            })
+            refresh_access_token: (access_token, access_token_expires_at) =>
+                set({
+                    access_token,
+                    access_token_expires_at,
+                }),
         }),
         {
             name: "auth-storage",
             storage: createJSONStorage(() => localStorage),
         }
     )
-)
+);
