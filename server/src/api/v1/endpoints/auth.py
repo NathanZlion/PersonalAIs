@@ -3,16 +3,20 @@ import urllib.parse
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
+from src.api.v1.middlewares.auth_middleware import authenticated_only
+from src.services.session_service import SessionService
 from src.utils.logger import logg
 from pydantic_core import ValidationError
 import urllib
 from requests import get, post
 
 from src.core.container import Container
-from src.core.exceptions import TokenExpiredError
+from src.core.exceptions import NotFoundError, TokenExpiredError
 from src.dtos.auth_dto import (
+    AuthAccessTokenSignedData,
     AuthCallbackInputDto,
     AuthCallbackResponse,
+    AuthLogoutResponse,
     SpotifyCallbackResponse,
 )
 from src.dtos.spotify_credentials_dto import SpotifyCredentialsCreateInputDto
@@ -127,10 +131,10 @@ async def callback(
 
         return AuthCallbackResponse(
             id=registration_success_response.id,
-            access_token=auth_callback_response.access_token,
-            refresh_token=auth_callback_response.refresh_token,
-            expires_at=auth_callback_response.expires_at,  # type: ignore
-            token_type=auth_callback_response.token_type,
+            access_token=registration_success_response.access_token,
+            refresh_token=registration_success_response.refresh_token,
+            expires_at=registration_success_response.expires_at,
+            token_type=registration_success_response.token_type,
             user=UserCreateResultDto(
                 id=registration_success_response.id,
                 email=spotify_user_info.email,
@@ -149,27 +153,24 @@ async def callback(
         raise HTTPException(status_code=500, detail="Unknown error")
 
 
-@router.get("/logout", response_model=Dict)
+@router.post("/logout", response_model=AuthLogoutResponse)
+@authenticated_only
 @inject
 async def logout(
     request: Request,
-    # user_data: UserCreateInputDto,
-    # auth_service: AuthService = Depends(Provide[Container.auth_service]),
-    # session_service: SessionService = Depends(Provide[Container.session_service]),
-) -> Dict:
+    session_service: SessionService = Depends(Provide[Container.session_service]),
+) -> AuthLogoutResponse:
     """Logout, end the current session of the user."""
 
-    res = {}
+    token_data: AuthAccessTokenSignedData = request.state.auth
+    session_id = token_data.session_id
 
-    # TODO: Get session id and stuff then delete the session, invalidating the refresh token in the process
+    # delete the session, invalidating the refresh token in the process
+    session = await session_service.delete_session_by_id(
+        session_id=session_id,
+    )
 
-    if request.client:
-        res["client"] = {
-            "host": request.client.host,
-            "port": request.client.port,
-        }
+    if not session:
+        raise NotFoundError(detail="Session not found")
 
-    return {
-        **res,
-        "message": "Logout successful",
-    }
+    return AuthLogoutResponse(message="Logged out successfully")

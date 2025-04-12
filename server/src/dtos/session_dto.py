@@ -20,40 +20,10 @@ class SessionCreateInputDto(SessionBase):
     """Session create input schema."""
 
 
-class SessionCreateResultDto(SessionBase, CreatedUpdatedAt):
-    """Session create output schema."""
-
-    session_id: PydanticObjectId
-
-
-class SessionGetByIdInputDto(BaseModel):
-    """Session get by id schema."""
-
-    session_id: PydanticObjectId
-
-
-class SessionGetByIdResultDto(SessionBase, CreatedUpdatedAt):
+class SessionResultDTO(SessionBase, CreatedUpdatedAt):
     """Session get by id result schema."""
 
-    session_id: PydanticObjectId
-
-
-class SessionGetByUserIdDto(BaseModel):
-    """Session get by user id schema."""
-
-    user_id: PydanticObjectId
-
-
-class SessionDeleteByUserIdDto(BaseModel):
-    """Session delete by user id schema."""
-
-    user_id: PydanticObjectId
-
-
-class SessionDeleteBySessionIdDto(BaseModel):
-    """Session delete by session id schema."""
-
-    session_id: PydanticObjectId
+    id: PydanticObjectId
 
 
 SessionBase.model_rebuild()

@@ -28,6 +28,7 @@ class AuthRegisterSuccessResponse(AuthBase):
     This is going to be returned to the user.
 
     """
+
     id: PydanticObjectId
     access_token: str
     refresh_token: str
@@ -58,6 +59,10 @@ class AuthAccessTokenSignedData(AuthBase):
     model_config = ConfigDict(
         from_attributes=True,
     )
+
+
+class AuthLogoutResponse(BaseModel):
+    message: str
 
 
 class SpotifyGetMeResponse(AuthBase):

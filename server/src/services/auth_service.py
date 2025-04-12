@@ -62,7 +62,7 @@ class AuthService:
             access_token = JWT_UTILS.generate_token(
                 payload={
                     "user_data": user_data,
-                    "session_id": new_session.session_id,
+                    "session_id": new_session.id,
                 },
                 expires_delta=CONFIG.ACCESS_TOKEN_LIFETIME,
             )

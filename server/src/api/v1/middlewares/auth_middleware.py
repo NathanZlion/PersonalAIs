@@ -17,7 +17,9 @@ from src.utils.jwt_utils import JWT_UTILS
 def ensure_user_authenticated(request: Request) -> None:
     """Centralized function to check if the request is authenticated."""
 
-    logg.debug(f'ensure_user_authenticated: Auth data from request state - {getattr(request.state, "auth", None)}')
+    logg.debug(
+        f'ensure_user_authenticated: Auth data from request state - {getattr(request.state, "auth", None)}'
+    )
 
     if not getattr(request.state, "auth", None):
         raise HTTPException(
@@ -31,7 +33,9 @@ def ensure_user_authenticated(request: Request) -> None:
         logg.debug(f"ensure_user_authenticated: Auth data: {auth_token_signed_data}")
 
         # Check if the access token has expired
-        logg.debug(f"Current time: {get_current_time()}, Expiration time: {auth_token_signed_data.exp}")
+        logg.debug(
+            f"Current time: {get_current_time()}, Expiration time: {auth_token_signed_data.exp}"
+        )
         if auth_token_signed_data.exp <= get_current_time():
             raise TokenExpiredError()
 
@@ -52,11 +56,8 @@ class AuthUserExtractFromTokenMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         try:
-            logg.debug(f"headers {request.headers}")
             authorization_header = request.headers.get("Authorization")
-            logg.debug(
-                f"Authorization header: {authorization_header}, request: {request.url}"
-            )
+            logg.debug(f"Authorization header: {authorization_header}")
             if authorization_header:
                 parts = authorization_header.split(" ")
 

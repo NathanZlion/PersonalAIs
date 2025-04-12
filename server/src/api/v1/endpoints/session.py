@@ -7,7 +7,8 @@ from src.api.v1.middlewares.auth_middleware import UnauthorizedUserBlockMiddlewa
 router = APIRouter(
     prefix="/session",
     tags=["session"],
-    # Session related endpoints are only for authenticated users
+    # Session related endpoints are only for authenticated users,
+    #  Hence we add the middleware on the router level
     dependencies=[Depends(UnauthorizedUserBlockMiddleware)],
 )
 
