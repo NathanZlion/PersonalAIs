@@ -6,8 +6,10 @@ import jwt
 from jwt.exceptions import InvalidTokenError
 from src.core.config import CONFIG
 from src.core.exceptions import MalformedTokenError, TokenNotFoundError
+from src.utils.custom_json_encoder import CustomJSONEncoder
 from src.utils.helper_functions import get_current_time
-from fastapi.encoders import jsonable_encoder
+
+# from fastapi.encoders import jsonable_encoder
 from src.utils.logger import logg
 
 
@@ -33,7 +35,8 @@ class JWT_UTILS:
         exp = get_current_time() + expires_delta
         payload_to_encode.update({"exp": exp.timestamp()})
         # to ensure all values are JSON serializable
-        serializable_payload = jsonable_encoder(payload_to_encode)
+        # serializable_payload = jsonable_encoder(payload_to_encode)
+        serializable_payload = payload_to_encode
         logg.debug(f"Payload to encode: {serializable_payload}")
 
         encoded_jwt = jwt.encode(
@@ -41,9 +44,12 @@ class JWT_UTILS:
             key=SECRET_KEY,
             algorithm=ALGORITHM,
             headers={"alg": ALGORITHM, "typ": "JWT"},
+            json_encoder=CustomJSONEncoder,
         )
 
+        logg.debug(f"Encoded JWT has {encoded_jwt.count('.')} segments.")
         logg.debug(f"Encoded JWT: {encoded_jwt}")
+
         return Token(
             token=encoded_jwt,
             exp=exp,
@@ -59,11 +65,11 @@ class JWT_UTILS:
         try:
             if not token:
                 raise TokenNotFoundError(detail="Found empty token")
+
             payload = jwt.decode(
                 jwt=token,
                 key=SECRET_KEY,
                 algorithms=[ALGORITHM],
-                json_encoder=jsonable_encoder,
             )
 
             logg.debug(f"Decoded payload: {payload}")

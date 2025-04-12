@@ -44,8 +44,4 @@ class Container(containers.DeclarativeContainer):
     spotify_credentials_service = providers.Factory(
         SpotifyCredentialsService, spotify_credentials_repo=spotify_credentials_repo
     )
-    user_service = providers.Factory(
-        UserService,
-        user_repo=user_repo,
-        session_service=session_service,
-    )
+    user_service = providers.Factory(UserService, user_repo=user_repo)

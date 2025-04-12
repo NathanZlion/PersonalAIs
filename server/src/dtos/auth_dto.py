@@ -28,8 +28,7 @@ class AuthRegisterSuccessResponse(AuthBase):
     This is going to be returned to the user.
 
     """
-
-    id: str
+    id: PydanticObjectId
     access_token: str
     refresh_token: str
     token_type: str
@@ -49,12 +48,12 @@ class AuthAccessTokenSignedData(AuthBase):
     The Data that is signed into the access token.
         - user_data
         - session_id
-        - expiration_time
+        - exp
     """
 
     user_data: UserCreateResultDto
     session_id: PydanticObjectId
-    expiration_time: datetime
+    exp: datetime
 
     model_config = ConfigDict(
         from_attributes=True,

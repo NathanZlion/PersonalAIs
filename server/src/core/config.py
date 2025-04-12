@@ -38,7 +38,7 @@ class Config(BaseModel):
     FRONTEND_AUTH_CALLBACK_URL: str = config("FRONTEND_AUTH_CALLBACK_URL", cast=str)
 
     JWT_SECRET: str = config("JWT_SECRET", cast=str)
-    ACCESS_TOKEN_LIFETIME: timedelta = timedelta(minutes=15)
+    ACCESS_TOKEN_LIFETIME: timedelta = timedelta(minutes=30)
     REFRESH_TOKEN_LIFETIME: timedelta = timedelta(weeks=8)
     JWT_ALGORITHM: str = "HS256"
 

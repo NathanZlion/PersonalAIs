@@ -26,7 +26,7 @@ class AuthService:
         try:
             _user = await self.__user_repo.get_by_spotify_id(user_create_dto.spotify_id)
 
-            if _user is None:
+            if not _user:
                 # Create a new user
                 _user = await self.__user_repo.create(user_create_dto)
 
@@ -56,7 +56,7 @@ class AuthService:
             """
 
             user_data = _user.model_dump(
-                # exclude={"created_at", "updated_at"}
+                exclude={"created_at", "updated_at"}
             )  # to avoid the datetime serialization error
 
             access_token = JWT_UTILS.generate_token(
@@ -68,7 +68,7 @@ class AuthService:
             )
 
             return AuthRegisterSuccessResponse(
-                id=str(_user.id),
+                id=_user.id,
                 access_token=access_token.token,
                 refresh_token=refresh_token.token,
                 token_type="Bearer",

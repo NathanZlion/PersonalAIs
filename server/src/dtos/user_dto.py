@@ -38,7 +38,7 @@ class UserGetResultDto(UserBase, CreatedUpdatedAt):
 
 
 class UserCreateResultDto(UserCreateInputDto, CreatedUpdatedAt):
-    id: str    # the user id in our database
+    id: PydanticObjectId
 
 class UserSpotifyProfileDto(BaseModel):
     """

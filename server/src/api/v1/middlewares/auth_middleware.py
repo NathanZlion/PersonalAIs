@@ -17,6 +17,8 @@ from src.utils.jwt_utils import JWT_UTILS
 def ensure_user_authenticated(request: Request) -> None:
     """Centralized function to check if the request is authenticated."""
 
+    logg.debug(f'ensure_user_authenticated: Auth data from request state - {getattr(request.state, "auth", None)}')
+
     if not getattr(request.state, "auth", None):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthenticated user"
@@ -26,11 +28,20 @@ def ensure_user_authenticated(request: Request) -> None:
             request.state.auth
         )
 
+        logg.debug(f"ensure_user_authenticated: Auth data: {auth_token_signed_data}")
+
         # Check if the access token has expired
-        if auth_token_signed_data.expiration_time > get_current_time():
+        logg.debug(f"Current time: {get_current_time()}, Expiration time: {auth_token_signed_data.exp}")
+        if auth_token_signed_data.exp <= get_current_time():
             raise TokenExpiredError()
 
     except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth data"
+        )
+
+    except Exception as e:
+        logg.error(f"Error in auth data validation: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid auth data"
         )
@@ -41,6 +52,7 @@ class AuthUserExtractFromTokenMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         try:
+            logg.debug(f"headers {request.headers}")
             authorization_header = request.headers.get("Authorization")
             logg.debug(
                 f"Authorization header: {authorization_header}, request: {request.url}"
@@ -67,7 +79,12 @@ class AuthUserExtractFromTokenMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
 
-        except (MalformedTokenError, ValidationError) as e:
+        except ValidationError as e:
+            logg.exception(f"ValidationError: {e}")
+            return Response(content="Malformed header defect", status_code=400)
+
+        except MalformedTokenError as e:
+            logg.exception(f"MalformedTokenError: {e}")
             return Response(content="Malformed header defect", status_code=400)
 
         except TokenNotFoundError:

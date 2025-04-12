@@ -155,10 +155,13 @@ async def logout(
     request: Request,
     # user_data: UserCreateInputDto,
     # auth_service: AuthService = Depends(Provide[Container.auth_service]),
+    # session_service: SessionService = Depends(Provide[Container.session_service]),
 ) -> Dict:
     """Logout, end the current session of the user."""
 
     res = {}
+
+    # TODO: Get session id and stuff then delete the session, invalidating the refresh token in the process
 
     if request.client:
         res["client"] = {
