@@ -36,6 +36,10 @@ export interface AuthCallbackResponse {
     expires_at: number;  // expires_at is a timestamp in milliseconds
 }
 
+export interface AuthLogoutResponse {
+    message: string;
+}
+
 type AuthActions = {
     set_loading: (is_loading: boolean) => void,
     set_user: (user: AuthState["user"]) => void,
@@ -96,12 +100,14 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                 }
             },
 
-            logout: () => {
+            logout: async () => {
                 // Reset the state to initialAuthState
+                set({ is_loading: true });
                 set(() => ({
                     ...initialAuthState
                 }));
                 console.log("Logged out");
+                set({ is_loading: false });
             },
 
             refresh_access_token: (access_token, access_token_expires_at) =>
@@ -113,6 +119,14 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         {
             name: "auth-storage",
             storage: createJSONStorage(() => localStorage),
+            partialize: (state) => ({
+                user: state.user,
+                access_token: state.access_token,
+                refresh_token: state.refresh_token,
+                access_token_expires_at: state.access_token_expires_at,
+                refresh_token_expires_at: state.refresh_token_expires_at,
+                is_authenticated: state.is_authenticated,
+            }),
         }
     )
 );

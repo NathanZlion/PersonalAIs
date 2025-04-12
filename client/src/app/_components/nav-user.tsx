@@ -2,7 +2,7 @@
 
 import {
   ChevronsUpDown,
-  Coffee,
+  // Coffee,
   LogOut,
   Settings,
 } from "lucide-react"

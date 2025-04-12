@@ -110,7 +110,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 }
 
                 {
-                    is_authenticated &&
+                 !is_loading && is_authenticated &&
                     <NavUser
                         user={{
                             name: user?.display_name || user?.id || "",
