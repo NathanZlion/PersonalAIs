@@ -103,10 +103,14 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             logout: async () => {
                 // Reset the state to initialAuthState
                 set({ is_loading: true });
-                set(() => ({
-                    ...initialAuthState
-                }));
-                console.log("Logged out");
+                const res = await AxiosInstance.post<AuthLogoutResponse>('/auth/logout');
+
+                if (res.status === 200) {
+                    set(() => ({
+                        ...initialAuthState
+                    }));
+                }
+
                 set({ is_loading: false });
             },
 
